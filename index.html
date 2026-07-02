@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trent Park Works Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --ink:#1B2430;
+    --ink-soft:#4A5568;
+    --paper:#F6F4EF;
+    --paper-line:#E1DCCF;
+    --card:#FFFFFF;
+    --brass:#A9793E;
+    --brass-soft:#C79A5E;
+    --open:#B23A2E;
+    --progress:#C08A2E;
+    --resolved:#3F6E4E;
+    --open-bg:#FBEAE7;
+    --progress-bg:#FBF1DE;
+    --resolved-bg:#E9F1EA;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px 80px;}
+
+  /* ---- Header ---- */
+  header{
+    padding:56px 0 28px;
+    border-bottom:1px solid var(--paper-line);
+    margin-bottom:32px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(32px,5vw,46px);
+    line-height:1.05;
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:15.5px;
+    max-width:52ch;
+    line-height:1.55;
+  }
+  .updated-line{
+    margin-top:18px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    letter-spacing:0.02em;
+  }
+
+  /* ---- Summary counts ---- */
+  .summary{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .count-btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    letter-spacing:0.03em;
+    padding:10px 16px;
+    border-radius:3px;
+    border:1px solid var(--paper-line);
+    background:var(--card);
+    cursor:pointer;
+    color:var(--ink-soft);
+    transition:border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .count-btn strong{color:var(--ink); font-weight:600;}
+  .count-btn.active{border-color:var(--ink); color:var(--ink); background:var(--card);}
+  .count-btn[data-status="Open"].active{border-color:var(--open); background:var(--open-bg);}
+  .count-btn[data-status="In Progress"].active{border-color:var(--progress); background:var(--progress-bg);}
+  .count-btn[data-status="Resolved"].active{border-color:var(--resolved); background:var(--resolved-bg);}
+
+  /* ---- Search ---- */
+  .search-row{margin-bottom:36px;}
+  #search{
+    width:100%;
+    padding:12px 14px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    border:1px solid var(--paper-line);
+    border-radius:3px;
+    background:var(--card);
+    color:var(--ink);
+  }
+  #search:focus{outline:2px solid var(--brass-soft); outline-offset:1px;}
+
+  /* ---- Issue list ---- */
+  .issue{
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    padding:22px 24px;
+    margin-bottom:14px;
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:20px;
+    align-items:start;
+  }
+  .stamp{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    font-weight:500;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:7px 12px;
+    border-radius:2px;
+    border:1.5px solid currentColor;
+    transform:rotate(-3deg);
+    white-space:nowrap;
+    text-align:center;
+  }
+  .stamp[data-status="Open"]{color:var(--open); background:var(--open-bg);}
+  .stamp[data-status="In Progress"]{color:var(--progress); background:var(--progress-bg);}
+  .stamp[data-status="Resolved"]{color:var(--resolved); background:var(--resolved-bg);}
+
+  .issue-body{min-width:0;}
+  .issue-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:6px;
+  }
+  .issue-id{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--brass);
+    font-weight:500;
+  }
+  .issue-location{
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .issue-desc{
+    font-size:16px;
+    line-height:1.5;
+    margin:4px 0 10px;
+  }
+  .issue-meta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    border-top:1px dashed var(--paper-line);
+    padding-top:10px;
+  }
+  .issue-notes{
+    margin-top:10px;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    font-style:italic;
+  }
+
+  @media (max-width:560px){
+    .issue{grid-template-columns:1fr; gap:12px;}
+    .stamp{justify-self:start;}
+  }
+
+  /* ---- States ---- */
+  .state-box{
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    padding:40px 28px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:14.5px;
+  }
+  .state-box code{
+    background:var(--paper);
+    padding:2px 6px;
+    border-radius:2px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+  }
+  footer{
+    margin-top:48px;
+    padding-top:20px;
+    border-top:1px solid var(--paper-line);
+    font-size:12px;
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Trent Park Residents Association &middot; POD Maintenance</div>
+    <h1>Works Register</h1>
+    <p class="subtitle">A live record of maintenance issues raised with POD, kept up to date by the TPRA committee. Statuses reflect the latest known position.</p>
+    <div class="updated-line" id="updated-line">Loading register&hellip;</div>
+  </header>
+
+  <div class="summary" id="summary"></div>
+  <div class="search-row">
+    <input type="text" id="search" placeholder="Search by description, location, or reference number&hellip;">
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<script>
+  // ---------------------------------------------------------------
+  // SETUP: paste your published Google Sheet CSV link below.
+  // Google Sheet -> File -> Share -> Publish to web -> select the
+  // relevant sheet -> Comma-separated values (.csv) -> Publish.
+  // Expected column headers (exact spelling, any order):
+  //   ID | Date Raised | Location | Description | Status | Last Updated | Notes
+  // Status must be one of: Open, In Progress, Resolved
+  // ---------------------------------------------------------------
+  const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1AhjgzEQcLgrToldlPA4T5QRNyIpyYEGDsEnTvFArGSk/gviz/tq?tqx=out:csv&gid=0";
+
+  const listEl = document.getElementById('list');
+  const summaryEl = document.getElementById('summary');
+  const updatedLine = document.getElementById('updated-line');
+  const searchEl = document.getElementById('search');
+
+  let allIssues = [];
+  let activeFilter = null;
+
+  function parseDate(str){
+    const d = new Date(str);
+    return isNaN(d) ? null : d;
+  }
+
+  function formatDate(str){
+    const d = parseDate(str);
+    if(!d) return str || '—';
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  function render(){
+    const q = searchEl.value.trim().toLowerCase();
+    let filtered = allIssues.filter(i => {
+      if(activeFilter && i.Status !== activeFilter) return false;
+      if(!q) return true;
+      const hay = [i.ID, i.Location, i.Description, i.Notes].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+
+    filtered.sort((a,b) => (parseDate(b['Date Raised']) || 0) - (parseDate(a['Date Raised']) || 0));
+
+    if(filtered.length === 0){
+      listEl.innerHTML = `<div class="state-box">No issues match here. Try clearing the search or filter.</div>`;
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(i => `
+      <div class="issue">
+        <div class="stamp" data-status="${i.Status}">${i.Status}</div>
+        <div class="issue-body">
+          <div class="issue-top">
+            <span class="issue-id">${i.ID || ''}</span>
+            <span class="issue-location">${i.Location || ''}</span>
+          </div>
+          <div class="issue-desc">${i.Description || ''}</div>
+          ${i.Notes ? `<div class="issue-notes">${i.Notes}</div>` : ''}
+          <div class="issue-meta">
+            <span>Raised ${formatDate(i['Date Raised'])}</span>
+            <span>Updated ${formatDate(i['Last Updated'])}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderSummary(){
+    const statuses = ['Open','In Progress','Resolved'];
+    const counts = {};
+    statuses.forEach(s => counts[s] = allIssues.filter(i => i.Status === s).length);
+
+    summaryEl.innerHTML = statuses.map(s => `
+      <button class="count-btn ${activeFilter===s?'active':''}" data-status="${s}">
+        <strong>${counts[s]}</strong> ${s}
+      </button>
+    `).join('') + `
+      <button class="count-btn ${activeFilter===null?'active':''}" data-status="">
+        <strong>${allIssues.length}</strong> All
+      </button>
+    `;
+
+    summaryEl.querySelectorAll('.count-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeFilter = btn.dataset.status || null;
+        renderSummary();
+        render();
+      });
+    });
+  }
+
+  function loadData(){
+    if(!SHEET_CSV_URL || SHEET_CSV_URL.includes('PASTE_YOUR')){
+      updatedLine.textContent = '';
+      listEl.innerHTML = `<div class="state-box">Register not connected yet.<br><br>Open <code>pod_tracker.html</code> and replace <code>SHEET_CSV_URL</code> with your published Google Sheet CSV link.</div>`;
+      return;
+    }
+
+    Papa.parse(SHEET_CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results){
+        allIssues = results.data.filter(row => row.ID || row.Description);
+        updatedLine.textContent = `Showing ${allIssues.length} logged issue${allIssues.length===1?'':'s'} · refreshed on page load`;
+        renderSummary();
+        render();
+      },
+      error: function(err){
+        updatedLine.textContent = '';
+        listEl.innerHTML = `<div class="state-box">Couldn't load the register.<br><br>Check that the Google Sheet is published to the web as CSV and the link is correct.</div>`;
+        console.error(err);
+      }
+    });
+  }
+
+  searchEl.addEventListener('input', render);
+  loadData();
+</script>
+</body>
+</html>
