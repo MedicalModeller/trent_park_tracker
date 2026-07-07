@@ -150,7 +150,7 @@
 
   .issue-id{
     font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
+    font-size:11px;
     color:var(--brass);
     font-weight:500;
   }
@@ -159,7 +159,7 @@
     font-size:11px;
     color:var(--ink-soft);
     display:flex;
-    gap:18px;
+    justify-content:space-between;
     flex-wrap:wrap;
     border-top:1px dashed var(--paper-line);
     margin-top:12px;
@@ -271,8 +271,8 @@
           <div class="stamp" data-status="${i.Status}">${i.Status}</div>
         </div>
         <div class="issue-meta">
-          <span class="issue-id">${i.ID || ''}</span>
           <span>Raised ${formatDate(i.DateRaised)}</span>
+          <span class="issue-id">${i.ID || ''}</span>
         </div>
       </div>
     `).join('');
