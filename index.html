@@ -114,23 +114,33 @@
     background:var(--card);
     border:1px solid var(--paper-line);
     border-radius:4px;
-    padding:22px 24px;
+    padding:20px 24px;
     margin-bottom:14px;
-    display:grid;
-    grid-template-columns:auto 1fr;
+  }
+  .issue-main-line{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
     gap:20px;
-    align-items:start;
+  }
+  .issue-text{
+    font-size:16px;
+    line-height:1.5;
+    min-width:0;
+  }
+  .issue-text strong{
+    font-weight:700;
   }
   .stamp{
+    flex-shrink:0;
     font-family:'IBM Plex Mono', monospace;
-    font-size:10.5px;
-    font-weight:500;
+    font-size:11px;
+    font-weight:600;
     letter-spacing:0.08em;
     text-transform:uppercase;
-    padding:7px 12px;
+    padding:7px 14px;
     border-radius:2px;
     border:1.5px solid currentColor;
-    transform:rotate(-3deg);
     white-space:nowrap;
     text-align:center;
   }
@@ -138,28 +148,11 @@
   .stamp[data-status="In progress"]{color:var(--progress); background:var(--progress-bg);}
   .stamp[data-status="Resolved"]{color:var(--resolved); background:var(--resolved-bg);}
 
-  .issue-body{min-width:0;}
-  .issue-top{
-    margin-bottom:2px;
-  }
   .issue-id{
     font-family:'IBM Plex Mono', monospace;
     font-size:12px;
     color:var(--brass);
     font-weight:500;
-  }
-  .issue-location{
-    display:block;
-    text-align:center;
-    font-weight:600;
-    font-size:17px;
-    color:var(--ink);
-    margin-bottom:10px;
-  }
-  .issue-desc{
-    font-size:16px;
-    line-height:1.5;
-    margin:4px 0 10px;
   }
   .issue-meta{
     font-family:'IBM Plex Mono', monospace;
@@ -169,6 +162,7 @@
     gap:18px;
     flex-wrap:wrap;
     border-top:1px dashed var(--paper-line);
+    margin-top:12px;
     padding-top:10px;
   }
   .issue-notes{
@@ -180,8 +174,7 @@
   }
 
   @media (max-width:560px){
-    .issue{grid-template-columns:1fr; gap:12px;}
-    .stamp{justify-self:start;}
+    .issue-main-line{flex-direction:column; align-items:flex-start; gap:10px;}
   }
 
   /* ---- States ---- */
@@ -273,16 +266,13 @@
 
     listEl.innerHTML = filtered.map(i => `
       <div class="issue">
-        <div class="stamp" data-status="${i.Status}">${i.Status}</div>
-        <div class="issue-body">
-          <div class="issue-top">
-            <span class="issue-id">${i.ID || ''}</span>
-          </div>
-          <span class="issue-location">${i.Location || ''}</span>
-          <div class="issue-desc">${i.Description || ''}</div>
-          <div class="issue-meta">
-            <span>Raised ${formatDate(i.DateRaised)}</span>
-          </div>
+        <div class="issue-main-line">
+          <div class="issue-text"><strong>${i.Location || ''}</strong>: ${i.Description || ''}</div>
+          <div class="stamp" data-status="${i.Status}">${i.Status}</div>
+        </div>
+        <div class="issue-meta">
+          <span class="issue-id">${i.ID || ''}</span>
+          <span>Raised ${formatDate(i.DateRaised)}</span>
         </div>
       </div>
     `).join('');
