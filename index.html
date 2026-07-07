@@ -91,8 +91,8 @@
   }
   .count-btn strong{color:var(--ink); font-weight:600;}
   .count-btn.active{border-color:var(--ink); color:var(--ink); background:var(--card);}
-  .count-btn[data-status="Open"].active{border-color:var(--open); background:var(--open-bg);}
-  .count-btn[data-status="In Progress"].active{border-color:var(--progress); background:var(--progress-bg);}
+  .count-btn[data-status="Submitted"].active{border-color:var(--open); background:var(--open-bg);}
+  .count-btn[data-status="In progress"].active{border-color:var(--progress); background:var(--progress-bg);}
   .count-btn[data-status="Resolved"].active{border-color:var(--resolved); background:var(--resolved-bg);}
 
   /* ---- Search ---- */
@@ -134,8 +134,8 @@
     white-space:nowrap;
     text-align:center;
   }
-  .stamp[data-status="Open"]{color:var(--open); background:var(--open-bg);}
-  .stamp[data-status="In Progress"]{color:var(--progress); background:var(--progress-bg);}
+  .stamp[data-status="Submitted"]{color:var(--open); background:var(--open-bg);}
+  .stamp[data-status="In progress"]{color:var(--progress); background:var(--progress-bg);}
   .stamp[data-status="Resolved"]{color:var(--resolved); background:var(--resolved-bg);}
 
   .issue-body{min-width:0;}
@@ -216,7 +216,7 @@
   <header>
     <div class="eyebrow">Trent Park Residents Association &middot; POD Maintenance</div>
     <h1>Works Register</h1>
-    <p class="subtitle">A live record of maintenance issues raised with POD, kept up to date by the TPRA committee. Statuses reflect the latest known position.</p>
+    <p class="subtitle">A live record of maintenance issues reported by residents to POD. Statuses reflect the latest known position.</p>
     <div class="updated-line" id="updated-line">Loading register&hellip;</div>
   </header>
 
@@ -230,14 +230,11 @@
 
 <script>
   // ---------------------------------------------------------------
-  // SETUP: paste your published Google Sheet CSV link below.
-  // Google Sheet -> File -> Share -> Publish to web -> select the
-  // relevant sheet -> Comma-separated values (.csv) -> Publish.
-  // Expected column headers (exact spelling, any order):
-  //   ID | Date Raised | Location | Description | Status | Last Updated | Notes
-  // Status must be one of: Open, In Progress, Resolved
+  // SETUP: reads directly from the "Residents Issues Log" Google
+  // Form's response sheet (Form_Responses2 tab).
+  // Status must be one of: Submitted, In progress, Resolved
   // ---------------------------------------------------------------
-  const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1AhjgzEQcLgrToldlPA4T5QRNyIpyYEGDsEnTvFArGSk/export?format=csv&gid=0";
+  const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1MsXzASMI45Zgzs47yCv_ourSup99gz5VMqX1gQ6Ah-4/export?format=csv&gid=375110716";
 
   const listEl = document.getElementById('list');
   const summaryEl = document.getElementById('summary');
@@ -263,11 +260,11 @@
     let filtered = allIssues.filter(i => {
       if(activeFilter && i.Status !== activeFilter) return false;
       if(!q) return true;
-      const hay = [i.ID, i.Location, i.Description, i.Notes].join(' ').toLowerCase();
+      const hay = [i.ID, i.Location, i.Description].join(' ').toLowerCase();
       return hay.includes(q);
     });
 
-    filtered.sort((a,b) => (parseDate(b['Date Raised']) || 0) - (parseDate(a['Date Raised']) || 0));
+    filtered.sort((a,b) => (parseDate(b.DateRaised) || 0) - (parseDate(a.DateRaised) || 0));
 
     if(filtered.length === 0){
       listEl.innerHTML = `<div class="state-box">No issues match here. Try clearing the search or filter.</div>`;
@@ -283,10 +280,8 @@
           </div>
           <span class="issue-location">${i.Location || ''}</span>
           <div class="issue-desc">${i.Description || ''}</div>
-          ${i.Notes ? `<div class="issue-notes">${i.Notes}</div>` : ''}
           <div class="issue-meta">
-            <span>Raised ${formatDate(i['Date Raised'])}</span>
-            <span>Updated ${formatDate(i['Last Updated'])}</span>
+            <span>Raised ${formatDate(i.DateRaised)}</span>
           </div>
         </div>
       </div>
@@ -294,7 +289,7 @@
   }
 
   function renderSummary(){
-    const statuses = ['Open','In Progress','Resolved'];
+    const statuses = ['Submitted','In progress','Resolved'];
     const counts = {};
     statuses.forEach(s => counts[s] = allIssues.filter(i => i.Status === s).length);
 
@@ -329,7 +324,15 @@
       header: true,
       skipEmptyLines: true,
       complete: function(results){
-        allIssues = results.data.filter(row => row.ID || row.Description);
+        allIssues = results.data
+          .filter(row => row['Timestamp'] || row['What is the problem?'])
+          .map(row => ({
+            ID: row['ID'],
+            Location: row['Where the problem?'],
+            Description: row['What is the problem?'],
+            Status: row['What is the current status'],
+            DateRaised: row['Timestamp']
+          }));
         updatedLine.textContent = `Showing ${allIssues.length} logged issue${allIssues.length===1?'':'s'} · refreshed on page load`;
         renderSummary();
         render();
