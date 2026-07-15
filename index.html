@@ -339,7 +339,7 @@
             Location: row['Location'],
             Description: row['Description'],
             Status: row['Status'],
-            DateRaised: row['Date Raised']
+            DateRaised: row['Date Reported to POD']
           }));
         updatedLine.textContent = `Showing ${allIssues.length} logged issue${allIssues.length===1?'':'s'} · refreshed on page load`;
         renderSummary();
