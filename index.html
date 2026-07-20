@@ -171,6 +171,24 @@
     color:var(--brass);
     font-weight:500;
   }
+  .issue-update{
+    margin-top:10px;
+    padding:10px 12px;
+    background:var(--paper);
+    border-left:3px solid var(--brass-soft);
+    border-radius:2px;
+    font-size:14px;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .issue-update strong{
+    font-weight:700;
+  }
+  .update-date{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+  }
   .issue-meta{
     font-family:'IBM Plex Mono', monospace;
     font-size:11px;
@@ -288,6 +306,7 @@
           <div class="issue-text"><strong>${i.Location || ''}</strong>: ${i.Description || ''}</div>
           <div class="stamp" data-status="${i.Status}">${i.Status}</div>
         </div>
+        ${i.Update ? `<div class="issue-update"><strong>Update:</strong> ${i.Update} <span class="update-date">(${formatDate(i.LastUpdated)})</span></div>` : ''}
         <div class="issue-meta">
           <span>Raised ${formatDate(i.DateRaised)}</span>
           <span class="issue-id">${i.ID || ''}</span>
@@ -339,7 +358,9 @@
             Location: row['Location'],
             Description: row['Description'],
             Status: row['Status'],
-            DateRaised: row['Date Reported to POD']
+            DateRaised: row['Date Reported to POD'],
+            Update: row['Update'],
+            LastUpdated: row['Date Raised']
           }));
         updatedLine.textContent = `Showing ${allIssues.length} logged issue${allIssues.length===1?'':'s'} · refreshed on page load`;
         renderSummary();
